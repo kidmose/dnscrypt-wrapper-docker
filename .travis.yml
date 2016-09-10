@@ -8,6 +8,6 @@ install:
 
 script:
   - docker run --interactive --tty dnscrypt-wrapper-docker --version
-  - docker run --interactive --tty --rm --volume $KEYDIR:/etc/dnscrypt-wrapper/cert -w /etc/dnscrypt-wrapper/cert dnscrypt-wrapper-docker --gen-provider-keypair | tee /tmp/gen-provider-keypair.log
-  - egrep 'Public key fingerprint: ' /tmp/gen-provider-keypair.log | sed 's/Public key fingerprint: //' >> /tmp/public_keypair-fingerprint
+  - bash -c 'docker run --interactive --tty --rm --volume $KEYDIR:/etc/dnscrypt-wrapper/cert -w /etc/dnscrypt-wrapper/cert dnscrypt-wrapper-docker --gen-provider-keypair | tee /tmp/gen-provider-keypair.log'
+  - bash -c 'egrep "Public key fingerprint: " /tmp/gen-provider-keypair.log | sed "s/Public key fingerprint: //" >> /tmp/public_keypair-fingerprint'
   - cat /tmp/public_keypair-fingerprint
