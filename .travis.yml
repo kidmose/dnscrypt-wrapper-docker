@@ -9,20 +9,21 @@ env:
     - CKEYDIR=/opt/dnscrypt-wrapper/etc/keys # Directory for keys in container
 
 install:
-  - docker build -t dnscrypt-wrapper-docker .
+  - docker build -t dnscrypt-wrapper .
   - rm -rf $HKEYDIR
   - mkdir -p $HKEYDIR
+  # TODO: Start local DNS server, to avoid dependence on the external one at 8.8.8.8
 
 script:
   # Generate keys
-  - docker run --interactive --tty --rm dnscrypt-wrapper-docker --version
-  - 'docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-provider-keypair | tee /tmp/gen-provider-keypair.log'
+  - docker run --interactive --tty --rm dnscrypt-wrapper --version
+  - 'docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper --gen-provider-keypair | tee /tmp/gen-provider-keypair.log'
   - 'PUBLIC_KEYPAIR_FINGERPRINT=$(egrep ''Public key fingerprint: '' /tmp/gen-provider-keypair.log | sed ''s/Public key fingerprint: //''); echo $PUBLIC_KEYPAIR_FINGERPRINT | tee $HKEYDIR/fingerprint; [ ! -z "$PUBLIC_KEYPAIR_FINGERPRINT" ]'
   - stat -t $HKEYDIR/public.key
   - stat -t $HKEYDIR/secret.key
-  - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-crypt-keypair
+  - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper --gen-crypt-keypair
   - stat -t $HKEYDIR/crypt_secret.key
-  - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-cert-file
+  - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper --gen-cert-file
   - stat -t $HKEYDIR/dnscrypt.cert
   # Run wrapper
   - 'docker run --detach --volume=$HKEYDIR:$CKEYDIR --publish=127.0.0.1:4443:4443/udp dnscrypt-wrapper \
