@@ -25,8 +25,7 @@ script:
   - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-cert-file
   - stat -t $HKEYDIR/dnscrypt.cert
   # Run wrapper
-  # TODO: Replace '--interactive --tty' with '--detach'
-  - 'docker run --interactive --tty --volume=$HKEYDIR:$CKEYDIR --publish=127.0.0.1:4443:4443/udp dnscrypt-wrapper \
+  - 'docker run --detach --volume=$HKEYDIR:$CKEYDIR --publish=127.0.0.1:4443:4443/udp dnscrypt-wrapper \
        --listen-address=0.0.0.0:4443 \
        --resolver-address=8.8.8.8:53 \
        --provider-name=2.dnscrypt-cert.example.com \
