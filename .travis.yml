@@ -16,7 +16,7 @@ install:
 script:
   - docker run --interactive --tty --rm dnscrypt-wrapper-docker --version
   - 'docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-provider-keypair | tee /tmp/gen-provider-keypair.log'
-  - 'PUBLIC_KEYPAIR_FINGERPRINT=$(egrep ''Public key fingerprint: '' /tmp/gen-provider-keypair.log | sed ''s/Public key fingerprint: //''); echo $PUBLIC_KEYPAIR_FINGERPRINT'
+  - 'PUBLIC_KEYPAIR_FINGERPRINT=$(egrep ''Public key fingerprint: '' /tmp/gen-provider-keypair.log | sed ''s/Public key fingerprint: //''); echo $PUBLIC_KEYPAIR_FINGERPRINT | tee $HKEYDIR/fingerprint; [ ! -z "$PUBLIC_KEYPAIR_FINGERPRINT" ]'
   - stat -t $HKEYDIR/public.key
   - stat -t $HKEYDIR/secret.key
   - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-crypt-keypair
