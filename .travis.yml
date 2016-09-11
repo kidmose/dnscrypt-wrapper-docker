@@ -3,11 +3,21 @@ sudo: required
 services:
   - docker
 
+env:
+  - HKEYDIR=/tmp/dnscrypt-wrapper/keys # Directory for keys on host
+  - CKEYDIR=/opt/dnscrypt-wrapper/etc/keys # Directory for keys in container
+
 install:
   - docker build -t dnscrypt-wrapper-docker .
+  - rm -rf $HKEYDIR
+  - mkdir -p $HKEYDIR
 
 script:
-  - docker run --interactive --tty dnscrypt-wrapper-docker --version
-  - bash -c 'docker run --interactive --tty --rm --volume $KEYDIR:/etc/dnscrypt-wrapper/cert -w /etc/dnscrypt-wrapper/cert dnscrypt-wrapper-docker --gen-provider-keypair | tee /tmp/gen-provider-keypair.log'
-  - bash -c 'egrep "Public key fingerprint: " /tmp/gen-provider-keypair.log | sed "s/Public key fingerprint: //" >> /tmp/public_keypair-fingerprint'
-  - cat /tmp/public_keypair-fingerprint
+  - docker run --interactive --tty --rm dnscrypt-wrapper-docker --version
+  - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-provider-keypair
+  - stat -t $HKEYDIR/public.key
+  - stat -t $HKEYDIR/private.key
+  - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-crypt-keypair
+  - stat -t $HKEYDIR/1.key
+  - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-cert-file
+  - stat -t $HKEYDIR/1.cert
