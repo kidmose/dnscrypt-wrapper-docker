@@ -14,6 +14,7 @@ install:
   - mkdir -p $HKEYDIR
 
 script:
+  # Generate keys
   - docker run --interactive --tty --rm dnscrypt-wrapper-docker --version
   - 'docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-provider-keypair | tee /tmp/gen-provider-keypair.log'
   - 'PUBLIC_KEYPAIR_FINGERPRINT=$(egrep ''Public key fingerprint: '' /tmp/gen-provider-keypair.log | sed ''s/Public key fingerprint: //''); echo $PUBLIC_KEYPAIR_FINGERPRINT | tee $HKEYDIR/fingerprint; [ ! -z "$PUBLIC_KEYPAIR_FINGERPRINT" ]'
@@ -23,3 +24,13 @@ script:
   - stat -t $HKEYDIR/crypt_secret.key
   - docker run --interactive --tty --rm --volume $HKEYDIR:$CKEYDIR -w $CKEYDIR dnscrypt-wrapper-docker --gen-cert-file
   - stat -t $HKEYDIR/dnscrypt.cert
+  # Run wrapper
+  # TODO: Replace '--interactive --tty' with '--detach'
+  - 'docker run --interactive --tty --volume=$HKEYDIR:$CKEYDIR --publish=127.0.0.1:4443:4443/udp dnscrypt-wrapper \
+       --listen-address=0.0.0.0:4443 \
+       --resolver-address=8.8.8.8:53 \
+       --provider-name=2.dnscrypt-cert.example.com \
+       --provider-cert-file=$CKEYDIR/dnscrypt.cert \
+       --crypt-secretkey-file=$CKEYDIR/dnscrypt.key'
+  # Run dnscrypt proxy
+  # TODO: Pull and run dnscrypt-proxy from dockerhub
