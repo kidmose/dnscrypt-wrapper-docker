@@ -4,8 +4,9 @@ services:
   - docker
 
 env:
-- HKEYDIR=/tmp/dnscrypt-wrapper/keys # Directory for keys on host
-- CKEYDIR=/opt/dnscrypt-wrapper/etc/keys # Directory for keys in container
+  global:
+    - HKEYDIR=/tmp/dnscrypt-wrapper/keys # Directory for keys on host
+    - CKEYDIR=/opt/dnscrypt-wrapper/etc/keys # Directory for keys in container
 
 install:
   - docker build -t dnscrypt-wrapper-docker .
